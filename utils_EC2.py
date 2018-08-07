@@ -1,5 +1,3 @@
-# 2016-12-30
-
 import numpy as np
 import json
 import random
@@ -21,10 +19,8 @@ def get_json_plasmids(filename):
     print("")
     return json_tree['plasmids']
 
-
 def count_plasmids_per_pmid(json_plasmids):
     start = time.time()
-    
     pmid_count_dict = {}
     doi_count_dict = {}
     pmid_to_doi = {}
@@ -41,8 +37,7 @@ def count_plasmids_per_pmid(json_plasmids):
         else:
             temp_dict = {pmid: 1}
             pmid_count_dict.update(temp_dict)
-            
-            
+                      
         if doi in doi_count_dict:
             temp_dict = {doi: doi_count_dict[doi]+1}
             doi_count_dict.update(temp_dict)
@@ -50,7 +45,6 @@ def count_plasmids_per_pmid(json_plasmids):
             temp_dict = {doi: 1}
             doi_count_dict.update(temp_dict)
             
-
     end = time.time()
     print("Counting plasmids per PMID took", end-start, "seconds")
     print("")
@@ -95,7 +89,6 @@ def count_plasmids_per_year(pmid_counts, doi_counts, pmid_to_doi):
             year_count_dict.update(temp_dict)
         
     end = time.time()
-    
     print("Fetching publication year for all PMIDs took", end-start, "seconds")
     print("")
     
@@ -128,8 +121,7 @@ def get_num_plasmids_per_pi(json_plasmids, min_num_plasmids_cutoff, max_seq_leng
             else:
                 temp_dict = {pi_name: 1}
                 pi_plasmid_dict.update(temp_dict)
-                
-                
+                      
     dict_copy = dict(pi_plasmid_dict)
     for pi in pi_plasmid_dict:
         if pi_plasmid_dict[pi] < min_num_plasmids_cutoff: del dict_copy[pi]
@@ -139,7 +131,6 @@ def get_num_plasmids_per_pi(json_plasmids, min_num_plasmids_cutoff, max_seq_leng
     print("Reducing PI list took", end-start, "seconds")
     print("")
     return dict_copy
-
 
 def parseTree(obj):  
     if isinstance(obj,int) or isinstance(obj,type(None)): 
@@ -163,8 +154,7 @@ def convert_seq_to_atgcn(seq):
         if ch in seq:
             seq=seq.replace(ch,"N")
     return seq.upper()
-
-            
+     
 def get_seqs_annotations(json_plasmids, pi_plasmid_dict, filter_length, max_seq_length):
     start = time.time()
     num_remaining_plasmids = sum(pi_plasmid_dict.values())
@@ -189,7 +179,6 @@ def get_seqs_annotations(json_plasmids, pi_plasmid_dict, filter_length, max_seq_
             for w in p['sequences']['public_user_partial_sequences']:
                 seqlen += len(convert_seq_to_atgcn(w))
         
-      
         if seqlen > 0:
             if len(p["pi"]) > 0:
                 if ' & '.join(p["pi"]) in remaining_pis:
@@ -223,7 +212,6 @@ def get_seqs_annotations(json_plasmids, pi_plasmid_dict, filter_length, max_seq_
                         parseTree(p['inserts'][0]['alt_names'])
                         parseTree(p['inserts'][0]['cloning'])
                         if len(p['inserts'][0]['entrez_gene']) > 0:
-                            #parseTree(p['inserts'][0]['entrez_gene'][0]['aliases']) # in JSON file, "list" of aliases string, not list
                             parseTree(p['inserts'][0]['entrez_gene'][0]['gene'])
                     annotations[count] = leaf_array
                     count += 1
@@ -260,7 +248,6 @@ def pad_dna(seqs,maxlen):
         if len(i) > maxlen:
             i = i[:maxlen]
             maxlen = len(i)
-    #print("Maximum DNA sequence length =", maxlen, "nt")
     for j in range(len(seqs)):
         if len(seqs[j]) > maxlen:
             seq = seqs[j][0:maxlen]
@@ -268,8 +255,6 @@ def pad_dna(seqs,maxlen):
             seq = seqs[j]
         padded_seqs[j] = seq + "N" * (maxlen - len(seq))
     end = time.time()
-    #print("N-padding DNA took", end-start, "seconds")
-    #print("")
     return padded_seqs
 
 def append_rc(seqs,filter_length):
@@ -283,10 +268,7 @@ def append_rc(seqs,filter_length):
             complement_seq += rc_dict[n]
         full_seqs[j] = fwd_seq + 'N'*filter_length + complement_seq[::-1] #[::-1] reverses string 
     end = time.time()
-    #print("Appending reverse complement took", end-start, "seconds")
-    #print("")
     return full_seqs
-
 
 def convert_annotations(annotations):
     start = time.time()
@@ -336,21 +318,18 @@ def separate_train_val_test(params, sorted_pi_list, sorted_annotations, sorted_r
     train_pi_labels_onehot = np.zeros((num_training_rows,len(pi_labels_onehot[0])))
     train_dna_seqs = [''] * num_training_rows
     train_annotation_labels = [[] for i in range(num_training_rows)]
-    #train_annotation_labels_bow = np.zeros((num_training_rows,len(annotation_labels_bow[0])))
     train_reduced_annotation_labels_bow = np.zeros((num_training_rows,len(reduced_annotation_labels_bow[0])))
     
     val_pi_labels = [''] * (val_plasmids_per_pi * len(sorted_pi_list))
     val_pi_labels_onehot = np.zeros((val_plasmids_per_pi * len(sorted_pi_list),len(pi_labels_onehot[0])))
     val_dna_seqs = [''] * (val_plasmids_per_pi * len(sorted_pi_list))
     val_annotation_labels = [[] for i in range(val_plasmids_per_pi * len(sorted_pi_list))]
-    #val_annotation_labels_bow = np.zeros((val_plasmids_per_pi * len(sorted_pi_list),len(annotation_labels_bow[0])))
     val_reduced_annotation_labels_bow = np.zeros((val_plasmids_per_pi * len(sorted_pi_list),len(reduced_annotation_labels_bow[0])))
     
     test_pi_labels = [''] * (test_plasmids_per_pi * len(sorted_pi_list))
     test_pi_labels_onehot = np.zeros((test_plasmids_per_pi * len(sorted_pi_list),len(pi_labels_onehot[0])))
     test_dna_seqs = [''] * (test_plasmids_per_pi * len(sorted_pi_list))
     test_annotation_labels = [[] for i in range(test_plasmids_per_pi * len(sorted_pi_list))]
-    #test_annotation_labels_bow = np.zeros((test_plasmids_per_pi * len(sorted_pi_list),len(annotation_labels_bow[0])))
     test_reduced_annotation_labels_bow = np.zeros((test_plasmids_per_pi * len(sorted_pi_list),len(reduced_annotation_labels_bow[0])))
     
     train_row = 0
@@ -362,7 +341,6 @@ def separate_train_val_test(params, sorted_pi_list, sorted_annotations, sorted_r
             val_pi_labels_onehot[val_row] = pi_labels_onehot[i]
             val_dna_seqs[val_row] = dna_seqs[i]
             val_annotation_labels[val_row] = annotation_labels[i]
-            #val_annotation_labels_bow[val_row] = annotation_labels_bow[i]
             val_reduced_annotation_labels_bow[val_row] = reduced_annotation_labels_bow[i]
             pi_val_count[sorted_pi_list.index(pi_labels[i])] += 1
             val_row += 1
@@ -371,7 +349,6 @@ def separate_train_val_test(params, sorted_pi_list, sorted_annotations, sorted_r
             test_pi_labels_onehot[test_row] = pi_labels_onehot[i]
             test_dna_seqs[test_row] = dna_seqs[i]
             test_annotation_labels[test_row] = annotation_labels[i]
-            #test_annotation_labels_bow[test_row] = annotation_labels_bow[i]
             test_reduced_annotation_labels_bow[test_row] = reduced_annotation_labels_bow[i]
             pi_test_count[sorted_pi_list.index(pi_labels[i])] += 1
             test_row += 1
@@ -380,7 +357,6 @@ def separate_train_val_test(params, sorted_pi_list, sorted_annotations, sorted_r
             train_pi_labels_onehot[train_row] = pi_labels_onehot[i]
             train_dna_seqs[train_row] = dna_seqs[i]
             train_annotation_labels[train_row] = annotation_labels[i]
-            #train_annotation_labels_bow[train_row] = annotation_labels_bow[i]
             train_reduced_annotation_labels_bow[train_row] = reduced_annotation_labels_bow[i]
             train_row += 1
     
@@ -393,31 +369,27 @@ def separate_train_val_test(params, sorted_pi_list, sorted_annotations, sorted_r
     for y in cl_weight.keys():
         cl_weight[y] = len(cl_weight)*float(cl_weight[y])/float(sumval)
     
-    t = '/mnt/' + timestamp
-    #t = timestamp
-    np.save(t + '_params.out', params)
-    pickle.dump(sorted_pi_list, open(t + "_sorted_pi_list.out", "wb"))
-    pickle.dump(sorted_annotations, open(t + "_sorted_annotations.out", "wb"))
-    pickle.dump(sorted_reduced_annotations, open(t + "_sorted_reduced_annotations.out", "wb"))
-    pickle.dump(train_pi_labels, open(t + "_train_pi_labels.out", "wb"))
-    np.save(t + '_train_pi_labels_onehot.out', train_pi_labels_onehot)
-    pickle.dump(train_dna_seqs, open(t + "_train_dna_seqs.out", "wb"))
-    pickle.dump(train_annotation_labels, open(t + "_train_annotation_labels.out", "wb"))
-    #np.save(t + '_train_annotation_labels_bow.out', train_annotation_labels_bow)
-    np.save(t + '_train_reduced_annotation_labels_bow.out', train_reduced_annotation_labels_bow)
-    pickle.dump(cl_weight, open(t + "_class_weight.out", "wb"))
-    pickle.dump(val_pi_labels, open(t + "_val_pi_labels.out", "wb"))
-    np.save(t + '_val_pi_labels_onehot.out', val_pi_labels_onehot)
-    pickle.dump(val_dna_seqs, open(t + "_val_dna_seqs.out", "wb"))
-    pickle.dump(val_annotation_labels, open(t + "_val_annotation_labels.out", "wb"))
-    #np.save(t + '_val_annotation_labels_bow.out', val_annotation_labels_bow)
-    np.save(t + '_val_reduced_annotation_labels_bow.out', val_reduced_annotation_labels_bow)
-    pickle.dump(test_pi_labels, open(t + "_test_pi_labels.out", "wb"))
-    np.save(t + '_test_pi_labels_onehot.out', test_pi_labels_onehot)
-    pickle.dump(test_dna_seqs, open(t + "_test_dna_seqs.out", "wb"))
-    pickle.dump(test_annotation_labels, open(t + "_test_annotation_labels.out", "wb"))
-    #np.save(t + '_test_annotation_labels_bow.out', test_annotation_labels_bow)
-    np.save(t + '_test_reduced_annotation_labels_bow.out', test_reduced_annotation_labels_bow)
+    t = '/mnt/'
+    np.save(t + 'params.out', params)
+    pickle.dump(sorted_pi_list, open(t + "sorted_pi_list.out", "wb"))
+    pickle.dump(sorted_annotations, open(t + "sorted_annotations.out", "wb"))
+    pickle.dump(sorted_reduced_annotations, open(t + "sorted_reduced_annotations.out", "wb"))
+    pickle.dump(train_pi_labels, open(t + "train_pi_labels.out", "wb"))
+    np.save(t + 'train_pi_labels_onehot.out', train_pi_labels_onehot)
+    pickle.dump(train_dna_seqs, open(t + "train_dna_seqs.out", "wb"))
+    pickle.dump(train_annotation_labels, open(t + "train_annotation_labels.out", "wb"))
+    np.save(t + 'train_reduced_annotation_labels_bow.out', train_reduced_annotation_labels_bow)
+    pickle.dump(cl_weight, open(t + "class_weight.out", "wb"))
+    pickle.dump(val_pi_labels, open(t + "val_pi_labels.out", "wb"))
+    np.save(t + 'val_pi_labels_onehot.out', val_pi_labels_onehot)
+    pickle.dump(val_dna_seqs, open(t + "val_dna_seqs.out", "wb"))
+    pickle.dump(val_annotation_labels, open(t + "val_annotation_labels.out", "wb"))
+    np.save(t + 'val_reduced_annotation_labels_bow.out', val_reduced_annotation_labels_bow)
+    pickle.dump(test_pi_labels, open(t + "test_pi_labels.out", "wb"))
+    np.save(t + 'test_pi_labels_onehot.out', test_pi_labels_onehot)
+    pickle.dump(test_dna_seqs, open(t + "test_dna_seqs.out", "wb"))
+    pickle.dump(test_annotation_labels, open(t + "test_annotation_labels.out", "wb"))
+    np.save(t + 'test_reduced_annotation_labels_bow.out', test_reduced_annotation_labels_bow)
 
 def convert_onehot2D(list_of_seqs):
     list_of_onehot2D_seqs = np.zeros((len(list_of_seqs),4,len(list_of_seqs[0])))
