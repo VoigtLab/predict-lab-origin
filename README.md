@@ -1,6 +1,6 @@
 # predict-lab-origin
 
-Software for the publication:
+Software that accompanies the publication:
 Alec AK Nielsen & Christopher A Voigt. Deep learning to predict the lab-of-origin of engineered DNA. Nature Communications. 2018.
 
 The following packages are required to run the code:
